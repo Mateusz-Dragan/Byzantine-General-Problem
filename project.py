@@ -6,52 +6,56 @@ class General:
     def __init__(self, id, is_traitor=False):
         self.id = id
         self.isTraitor = is_traitor
+        self.decisions = []
+        self.decision = None
+
+    def MakeDecision(self):
+        self.decision = (bool(random.getrandbits(1)))
+        return self.decision
+
+    def SendDecision(self):
+        if self.isTraitor:
+            pass
+        return self.decisions
 
 
-# funkcja nadająca który generał jest zdrajcą
+    # funkcja nadająca który generał jest zdrajcą
 def make_generals(size, traitor):
     gen = []
     i = 1
     while i <= size:
-        general = General(i)
         if traitor > 0:
-            general.isTraitor = (bool(random.getrandbits(1)))
-            if not general.isTraitor:
+            isTraitor = (bool(random.getrandbits(1)))
+            if not isTraitor:
                 traitor -= 1
             else:
                 pass
         else:
-            general.isTraitor = True
-        gen.append(general.isTraitor)
-        print("Generał", general.id, general.isTraitor)
+            isTraitor = True
+        gen.append(General(i, isTraitor))
         i += 1
+    for obj in gen:
+        print("Generał", obj.id, obj.isTraitor)
     return gen
 
 
 def count_generals(gen):
     t = 0  # liczba zdrajców
     l = 0  # liczba lojalnych
-    i = 0
-    while i < len(gen):
-        if gen[i]:
+    for obj in gen:
+        if obj.isTraitor:
             l += 1
         else:
             t += 1
-        i += 1
     return l, t
 
 
-# funkcja do rozsyłania komunikaty generałom
-def Command(gen, command):
-    decisions = []
-    i = 0
-    while i < len(gen):
-        if gen["Generał", i + 1] == True:
-            decisions.append(True)
-        else:
-            decisions.append(False)
-        i += 1
-    return gen, decisions
+def RoundOne(gen):
+    collect = []
+    for obj in gen:
+        collect.append(obj.MakeDecision())
+        obj.decisions = collect
+        print(obj.SendDecision())
 
 
 # funkcja służąca do wynalezienia ilości możliwych zdrajców wśród generałów
@@ -77,10 +81,8 @@ def main():
     # przypisywanie ich do słownika
     print("Ilość lojalnych generałów:", count_generals(gen)[0])
     print("Ilość zdrajców wśród generałów:", count_generals(gen)[1])
-    check = True
-    # while check:
-    #    command = input("Podaj komendę: ")
-    #   print(Command(gen, command))
+
+    print(RoundOne(gen))
 
 
 if __name__ == "__main__":

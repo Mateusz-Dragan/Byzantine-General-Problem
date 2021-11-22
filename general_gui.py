@@ -14,7 +14,7 @@ class GeneralGUI:
         self.myButton.pack(pady=20)
 
     def clicker(self):
-        print("Haha what a loser")
+        print("General")
 
 
 e = GeneralGUI(root)
