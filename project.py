@@ -7,19 +7,30 @@ class General:
         self.id = id
         self.isTraitor = is_traitor
         self.decisions = []
-        self.decision = None
+        self.other_generals = []
+        self.majority = False
+        self.majority_count = 0
 
     def MakeDecision(self):
         self.decision = (bool(random.getrandbits(1)))
         return self.decision
 
-    def SendDecision(self):
-        if self.isTraitor:
-            pass
-        return self.decisions
+    def CountMajority(self):
+        rt=0
+        at=0
+        for i in self.other_generals:
+            if i:
+                at += 1
+            else:
+                rt += 1
+        if at > rt:
+            self.majority = True
+            self.majority_count = at
+        else:
+            self.majority = False
+            self.majority_count = rt
 
 
-    # funkcja nadająca który generał jest zdrajcą
 def make_generals(size, traitor):
     gen = []
     i = 1
@@ -52,10 +63,22 @@ def count_generals(gen):
 
 def RoundOne(gen):
     collect = []
+    order=False
+    orders=0
     for obj in gen:
         collect.append(obj.MakeDecision())
-        obj.decisions = collect
-        print(obj.SendDecision())
+
+    print(collect)
+    for obj in gen:
+        obj.other_generals = collect
+        print(obj.other_generals)
+        obj.CountMajority()
+        order=obj.majority
+        orders=obj.majority_count
+    if orders == len(collect)/2:
+        return RoundOne(gen)
+    return order,orders
+
 
 
 # funkcja służąca do wynalezienia ilości możliwych zdrajców wśród generałów
@@ -81,8 +104,16 @@ def main():
     # przypisywanie ich do słownika
     print("Ilość lojalnych generałów:", count_generals(gen)[0])
     print("Ilość zdrajców wśród generałów:", count_generals(gen)[1])
-
-    print(RoundOne(gen))
+    results = RoundOne(gen)
+    order = results[0]
+    order_count = results[1]
+    print(order, order_count)
+    command = ""
+    if order:
+        command = "Atakuj"
+    else:
+        command = "Wycofaj"
+    print(command)
 
 
 if __name__ == "__main__":
