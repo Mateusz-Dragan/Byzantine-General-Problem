@@ -53,6 +53,7 @@ class General:
 
     def send_message(self):
         if not self.isTraitor:
+            choices.remove(self.message)
             self.message = random.choice(choices)
             return self.message
         else:
@@ -138,6 +139,39 @@ def receive_message(arr, id):
 choices = ['Atak o 7 rano', 'Atak o 5 rano', 'Atak o 11 w nocy', 'Powrót']
 
 
+def start(gen, amount_of_generals):
+    i = 0
+    message = random.choice(choices)
+    myblockchain = Blockchain()
+
+    while i < amount_of_generals:
+        sender = send_message(gen, message, i + 1)
+        receiver = receive_message(gen, i + 2)
+        if i == amount_of_generals - 1:
+            myblockchain.create_block_from_transaction(
+                ["Generał", str(sender[0]), "sent", str(sender[1]), "to Generał", str(receive_message(gen, 1))],
+                message)
+        else:
+            myblockchain.create_block_from_transaction(
+                ["Generał", str(sender[0]), "sent", str(sender[1]), "to Generał", str(receiver)], message)
+        message = sender[1]
+        i += 1
+
+    myblockchain.display_chain()
+
+    f = 0
+    t = 0
+    for x in gen:
+        print(x.decision)
+        if x.decision:
+            t += 1
+        else:
+            f += 1
+
+    if t > f:
+        print("Podjęto decyzję:", message)
+    else:
+        return start(gen, amount_of_generals)
 
 
 def main():
@@ -157,41 +191,8 @@ def main():
     print("Ilość zdrajców wśród generałów:", count_generals(gen)[1])
     amount_of_generals = count_generals(gen)[2]
 
-    check = True
-    while check:
-        i = 0
-        message = random.choice(choices)
-        myblockchain = Blockchain()
+    start(gen, amount_of_generals)
 
-        while i < amount_of_generals:
-            sender = send_message(gen, message, i + 1)
-            receiver = receive_message(gen, i + 2)
-            if i == amount_of_generals - 1:
-                myblockchain.create_block_from_transaction(
-                    ["Generał", str(sender[0]), "sent", str(sender[1]), "to Generał", str(receive_message(gen, 1))],
-                    message)
-            else:
-                myblockchain.create_block_from_transaction(
-                    ["Generał", str(sender[0]), "sent", str(sender[1]), "to Generał", str(receiver)], message)
-            message = sender[1]
-            i += 1
-
-        myblockchain.display_chain()
-
-        f = 0
-        t = 0
-        for x in gen:
-            print(x.decision)
-            if x.decision:
-                t += 1
-            else:
-                f += 1
-
-        if t > f:
-            print("Podjęto decyzję:",message)
-        check = False
-
-        print("Podjęto decyzję: ")
 
 
 if __name__ == "__main__":
