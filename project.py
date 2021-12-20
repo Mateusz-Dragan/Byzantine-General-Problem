@@ -45,22 +45,24 @@ class General:
         self.id = id
         self.isTraitor = is_traitor
         self.message = ""
+        self.decision = True
         self.decisions = []
         self.other_generals = []
         self.majority = False
         self.majority_count = 0
 
-    def change_message(self):
+    def send_message(self):
         if not self.isTraitor:
-            return "Betrayal"
+            self.message = random.choice(choices)
+            return self.message
         else:
             return self.message
 
-    def MakeDecision(self):
+    def make_decision(self):
         self.decision = (bool(random.getrandbits(1)))
         return self.decision
 
-    def CountMajority(self):
+    def count_majority(self):
         rt = 0
         at = 0
         for i in self.other_generals:
@@ -110,25 +112,6 @@ def count_generals(gen):
     return l, t, total
 
 
-# def RoundOne(gen):
-#     collect = []
-#     order = False
-#     orders = 0
-#     for obj in gen:
-#         collect.append(obj.MakeDecision())
-#
-#     print(collect)
-#     for obj in gen:
-#         obj.other_generals = collect
-#         print(obj.other_generals)
-#         obj.CountMajority()
-#         order = obj.majority
-#         orders = obj.majority_count
-#     if orders == len(collect) / 2:
-#         return RoundOne(gen)
-#     return order, orders
-
-
 # funkcja służąca do wynalezienia ilości możliwych zdrajców wśród generałów
 def FindTraitorAmount(il):
     if il % 4 == 0:
@@ -141,14 +124,20 @@ def send_message(arr, message, id):
     for x in arr:
         if x.id == id:
             x.message = message
-            message = x.change_message()
-            return x.id, message
+            x.make_decision()
+            # message = x.change_message()
+            return x.id, x.send_message()
 
 
 def receive_message(arr, id):
     for x in arr:
         if x.id == id:
             return x.id
+
+
+choices = ['Atak o 7 rano', 'Atak o 5 rano', 'Atak o 11 w nocy', 'Powrót']
+
+
 
 
 def main():
@@ -168,32 +157,41 @@ def main():
     print("Ilość zdrajców wśród generałów:", count_generals(gen)[1])
     amount_of_generals = count_generals(gen)[2]
 
-    # print(gen)
     check = True
     while check:
         i = 0
-        message = input("Wpisz komendę: ")
+        message = random.choice(choices)
         myblockchain = Blockchain()
 
-        while i < amount_of_generals - 1:
+        while i < amount_of_generals:
             sender = send_message(gen, message, i + 1)
             receiver = receive_message(gen, i + 2)
-            myblockchain.create_block_from_transaction(
-                ["Generał", str(sender[0]), "sent", str(sender[1]), "to Generał", str(receiver)], message)
+            if i == amount_of_generals - 1:
+                myblockchain.create_block_from_transaction(
+                    ["Generał", str(sender[0]), "sent", str(sender[1]), "to Generał", str(receive_message(gen, 1))],
+                    message)
+            else:
+                myblockchain.create_block_from_transaction(
+                    ["Generał", str(sender[0]), "sent", str(sender[1]), "to Generał", str(receiver)], message)
             message = sender[1]
             i += 1
 
         myblockchain.display_chain()
-    # results = RoundOne(gen)
-    # order = results[0]
-    # order_count = results[1]
-    # print(order, order_count)
-    # command = ""
-    # if order:
-    #     command = "Atakuj"
-    # else:
-    #     command = "Wycofaj"
-    # print(command)
+
+        f = 0
+        t = 0
+        for x in gen:
+            print(x.decision)
+            if x.decision:
+                t += 1
+            else:
+                f += 1
+
+        if t > f:
+            print("Podjęto decyzję:",message)
+        check = False
+
+        print("Podjęto decyzję: ")
 
 
 if __name__ == "__main__":
