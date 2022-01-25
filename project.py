@@ -1,5 +1,7 @@
 import random
 import hashlib
+import general_gui
+from tkinter import *
 
 
 class Block:
@@ -39,19 +41,24 @@ class Blockchain:
         return self.chain[-1]
 
 
+# klasa zawierająca informacje o generałach
 class General:
 
     def __init__(self, id, is_traitor=False):
         self.id = id
         self.isTraitor = is_traitor
+        self.isKing = False
         self.message = ""
+        self.received_message = ""
         self.decision = True
         self.decisions = []
+        self.king_decision = False
         self.other_generals = []
         self.majority = False
         self.majority_count = 0
 
-    def send_message(self):
+    #funkcja na rozsyłanie wiadomosći pomiędzy generałami
+    def send_message(self, choices):
         if not self.isTraitor:
             choices.remove(self.message)
             self.message = random.choice(choices)
@@ -59,6 +66,24 @@ class General:
         else:
             return self.message
 
+    #funkcja na rozsyłanie wiadomosći pomiędzy generałami w algorytmie króla
+    def king_send_message(self):
+        if not self.isTraitor:
+            return self.message
+        else:
+            return self.message
+
+    # funkcja na sprawdzenie decyzji króla w algorytmie króla
+    def check_king_decision(self):
+        if self.majority_count > 3:
+            if bool(self.message) == self.majority:
+                return 1
+            else:
+                return 0
+        else:
+            return 0
+
+    # funkcja na podjęcia decyzji przez generała
     def make_decision(self):
         self.decision = (bool(random.getrandbits(1)))
         return self.decision
@@ -121,78 +146,27 @@ def FindTraitorAmount(il):
     return int(traitor[0])
 
 
-def send_message(arr, message, id):
-    for x in arr:
-        if x.id == id:
-            x.message = message
-            x.make_decision()
-            # message = x.change_message()
-            return x.id, x.send_message()
-
-
-def receive_message(arr, id):
-    for x in arr:
-        if x.id == id:
-            return x.id
-
-
-choices = ['Atak o 7 rano', 'Atak o 5 rano', 'Atak o 11 w nocy', 'Powrót']
-
-
+# funkcja uruchamiająca gui do bizantyjskich generałów
 def start(gen, amount_of_generals):
+    window = Tk()
+
+    window.config(background='Green')
+    window.title('Pole Bitwy')
+    window.geometry('800x800')
+    e = general_gui.GeneralGUI(window, gen, amount_of_generals)
+    window.mainloop()
     i = 0
-    message = random.choice(choices)
-    myblockchain = Blockchain()
-
-    while i < amount_of_generals:
-        sender = send_message(gen, message, i + 1)
-        receiver = receive_message(gen, i + 2)
-        if i == amount_of_generals - 1:
-            myblockchain.create_block_from_transaction(
-                ["Generał", str(sender[0]), "sent", str(sender[1]), "to Generał", str(receive_message(gen, 1))],
-                message)
-        else:
-            myblockchain.create_block_from_transaction(
-                ["Generał", str(sender[0]), "sent", str(sender[1]), "to Generał", str(receiver)], message)
-        message = sender[1]
-        i += 1
-
-    myblockchain.display_chain()
-
-    f = 0
-    t = 0
-    for x in gen:
-        print(x.decision)
-        if x.decision:
-            t += 1
-        else:
-            f += 1
-
-    if t > f:
-        print("Podjęto decyzję:", message)
-    else:
-        return start(gen, amount_of_generals)
 
 
 def main():
-    check = True
-    while check:
-        il = int(input("Podaj liczbę generałów (conajmniej 5): "))
-        if il < 5:
-            print("Podaj większą liczbę generałów\n")
-        else:
-            check = False
-
-    traitor = FindTraitorAmount(il)  # ilość możliwych zdrajców wśród generałów
+    traitor = FindTraitorAmount(6)  # ilość możliwych zdrajców wśród generałów
     print("Największa możliwa ilość zdrajców wśród generałów:", traitor)
-    gen = make_generals(il, traitor)  # wywołanie funkcji wybierającej spośród generałów kto jest zdrajcą a kto nie i
-    # przypisywanie ich do słownika
+    gen = make_generals(6, traitor)  # wywołanie funkcji wybierającej spośród generałów kto jest zdrajcą a kto nie i
     print("Ilość lojalnych generałów:", count_generals(gen)[0])
     print("Ilość zdrajców wśród generałów:", count_generals(gen)[1])
     amount_of_generals = count_generals(gen)[2]
 
     start(gen, amount_of_generals)
-
 
 
 if __name__ == "__main__":
